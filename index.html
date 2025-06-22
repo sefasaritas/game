@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ticaret Hanı - Clicker Oyunu</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #2c1810 0%, #4a2c17 100%);
+            color: #f4e4c1;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .game-container {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 20px;
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+            min-height: 100vh;
+        }
+        
+        .main-game {
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 30px;
+            border: 2px solid #d4af37;
+            text-align: center;
+        }
+        
+        .header {
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #d4af37;
+            font-size: 2.5em;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .gold-display {
+            font-size: 2em;
+            color: #d4af37;
+            margin: 20px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            font-weight: bold;
+        }
+        
+        .click-area {
+            margin: 40px 0;
+        }
+        
+        .main-click-button {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #d4af37, #f4e4c1);
+            border: 5px solid #8b6914;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2c1810;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+        }
+        
+        .main-click-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 12px 24px rgba(212, 175, 55, 0.4);
+        }
+        
+        .main-click-button:active {
+            transform: scale(0.95);
+        }
+        
+        .click-power {
+            margin-top: 15px;
+            font-size: 1.1em;
+            color: #d4af37;
+        }
+        
+        .current-product {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(212, 175, 55, 0.1);
+            border-radius: 10px;
+            border: 1px solid #d4af37;
+        }
+        
+        .passive-income {
+            margin-top: 20px;
+            font-size: 1.2em;
+            color: #27ae60;
+        }
+        
+        .shop-panel {
+            background: rgba(0,0,0,0.4);
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px solid #8b6914;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .shop-title {
+            color: #d4af37;
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            text-align: center;
+            border-bottom: 2px solid #d4af37;
+            padding-bottom: 10px;
+        }
+        
+        .shop-section {
+            margin-bottom: 25px;
+        }
+        
+        .section-title {
+            color: #f39c12;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        
+        .shop-item {
+            background: rgba(212, 175, 55, 0.1);
+            border: 1px solid #d4af37;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .shop-item.disabled {
+            opacity: 0.5;
+            border-color: #666;
+        }
+        
+        .item-info {
+            flex-grow: 1;
+        }
+        
+        .buy-button {
+            background: linear-gradient(45deg, #d4af37, #f4e4c1);
+            border: 2px solid #8b6914;
+            border-radius: 6px;
+            padding: 8px 16px;
+            color: #2c1810;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            font-size: 0.9em;
+        }
+        
+        .buy-button:hover {
+            background: linear-gradient(45deg, #f4e4c1, #d4af37);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(212, 175, 55, 0.3);
+        }
+        
+        .buy-button:active {
+            transform: translateY(0);
+        }
+        
+        .buy-button.disabled {
+            background: #666;
+            border-color: #444;
+            cursor: not-allowed;
+            color: #999;
+        }
+        
+        .buy-button.disabled:hover {
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .buy-button.owned {
+            background: #27ae60;
+            border-color: #1e8449;
+            color: white;
+            cursor: default;
+        }
+        
+        .buy-button.owned:hover {
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .item-name {
+            font-weight: bold;
+            color: #d4af37;
+            margin-bottom: 5px;
+        }
+        
+        .item-description {
+            font-size: 0.9em;
+            margin-bottom: 8px;
+            opacity: 0.9;
+        }
+        
+        .item-cost {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        
+        .item-owned {
+            color: #27ae60;
+            font-size: 0.9em;
+            float: right;
+        }
+        
+        .floating-gold {
+            position: absolute;
+            color: #d4af37;
+            font-weight: bold;
+            font-size: 1.5em;
+            pointer-events: none;
+            z-index: 1000;
+            animation: floatUp 1s ease-out forwards;
+        }
+        
+        @keyframes floatUp {
+            0% {
+                opacity: 1;
+                transform: translateY(0px);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+        }
+        
+        .achievement {
+            background: rgba(26, 188, 156, 0.2);
+            border: 2px solid #1abc9c;
+            border-radius: 8px;
+            padding: 10px;
+            margin: 10px 0;
+            animation: glow 0.5s ease-in-out;
+        }
+        
+        @keyframes glow {
+            0% { box-shadow: 0 0 5px #1abc9c; }
+            50% { box-shadow: 0 0 20px #1abc9c; }
+            100% { box-shadow: 0 0 5px #1abc9c; }
+        }
+        
+        .stats {
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+        
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+        }
+        
+        @media (max-width: 768px) {
+            .game-container {
+                grid-template-columns: 1fr;
+                padding: 10px;
+            }
+            
+            .main-click-button {
+                width: 150px;
+                height: 150px;
+                font-size: 1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="main-game">
+            <div class="header">
+                <h1>🏛️ Ticaret Hanı</h1>
+                <div class="gold-display">💰 <span id="goldAmount">0</span> Altın</div>
+                <div class="passive-income">📈 Saniyede: <span id="passiveIncome">0</span> altın</div>
+            </div>
+            
+            <div class="click-area">
+                <button class="main-click-button" id="mainClickBtn">
+                    🛒<br>
+                    Satış Yap!
+                </button>
+                <div class="click-power">Tıklama başına: <span id="clickPower">1</span> altın</div>
+                
+                <div class="current-product">
+                    <strong>Şu an satılan:</strong><br>
+                    <span id="currentProduct">Keçeden yapılmış takke</span>
+                </div>
+            </div>
+            
+            <div class="stats">
+                <div class="stat-item">
+                    <span>Toplam tıklama:</span>
+                    <span id="totalClicks">0</span>
+                </div>
+                <div class="stat-item">
+                    <span>Toplam kazanç:</span>
+                    <span id="totalEarned">0</span>
+                </div>
+                <div class="stat-item">
+                    <span>Açık şehir:</span>
+                    <span id="currentCity">İstanbul</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="shop-panel">
+            <div class="shop-title">🛍️ Dükkan</div>
+            
+            <div class="shop-section">
+                <div class="section-title">👥 Çalışanlar</div>
+                <div id="workersSection"></div>
+            </div>
+            
+            <div class="shop-section">
+                <div class="section-title">🏪 Dükkânlar</div>
+                <div id="shopsSection"></div>
+            </div>
+            
+            <div class="shop-section">
+                <div class="section-title">⬆️ Geliştirmeler</div>
+                <div id="upgradesSection"></div>
+            </div>
+            
+            <div class="shop-section">
+                <div class="section-title">🗺️ Şehirler</div>
+                <div id="citiesSection"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        class TicaretHaniGame {
+            constructor() {
+                this.gold = 0;
+                this.clickPower = 1;
+                this.passiveIncome = 0;
+                this.totalClicks = 0;
+                this.totalEarned = 0;
+                this.currentCity = "İstanbul";
+                this.currentProduct = "Keçeden yapılmış takke";
+                
+                this.workers = {};
+                this.shops = {};
+                this.upgrades = {};
+                this.cities = {};
+                
+                this.initializeShopItems();
+                this.setupEventListeners();
+                this.startPassiveIncome();
+                this.updateDisplay();
+            }
+            
+            initializeShopItems() {
+                this.shopItems = {
+                    workers: [
+                        { id: 'cirak', name: 'Çırak', cost: 50, income: 1, description: 'Saniyede 1 altın üretir' },
+                        { id: 'usta', name: 'Usta', cost: 200, income: 5, description: 'Saniyede 5 altın üretir' },
+                        { id: 'ustabasi', name: 'Ustabaşı', cost: 800, income: 20, description: 'Saniyede 20 altın üretir' },
+                        { id: 'kervanci', name: 'Kervancı', cost: 3000, income: 75, description: 'Saniyede 75 altın üretir' }
+                    ],
+                    shops: [
+                        { id: 'baharatci', name: 'Baharatçı', cost: 300, clickBonus: 2, product: 'Hint baharatları' },
+                        { id: 'kumasci', name: 'Kumaşçı', cost: 1000, clickBonus: 5, product: 'İpek kumaşlar' },
+                        { id: 'mucevherci', name: 'Mücevherci', cost: 5000, clickBonus: 15, product: 'Değerli taşlar' },
+                        { id: 'silah', name: 'Silah Ustası', cost: 15000, clickBonus: 40, product: 'Şam çeliği kılıçlar' }
+                    ],
+                    upgrades: [
+                        { id: 'reklam', name: 'Reklam', cost: 500, effect: 'click', multiplier: 2, description: 'Tıklama gücünü 2x arttırır' },
+                        { id: 'kalite', name: 'Kalite İyileştirme', cost: 2000, effect: 'click', multiplier: 3, description: 'Tıklama gücünü 3x arttırır' },
+                        { id: 'verimlilik', name: 'Verimlilik', cost: 8000, effect: 'passive', multiplier: 2, description: 'Pasif geliri 2x arttırır' },
+                        { id: 'toptanci', name: 'Toptancı Anlaşması', cost: 25000, effect: 'passive', multiplier: 3, description: 'Pasif geliri 3x arttırır' }
+                    ],
+                    cities: [
+                        { id: 'bursa', name: 'Bursa', cost: 10000, bonus: 1.5, description: 'Tüm gelirleri %50 arttırır' },
+                        { id: 'tebriz', name: 'Tebriz', cost: 50000, bonus: 2, description: 'Tüm gelirleri 2x arttırır' },
+                        { id: 'venedik', name: 'Venedik', cost: 200000, bonus: 3, description: 'Tüm gelirleri 3x arttırır' },
+                        { id: 'delhi', name: 'Delhi', cost: 1000000, bonus: 5, description: 'Tüm gelirleri 5x arttırır' }
+                    ]
+                };
+            }
+            
+            setupEventListeners() {
+                document.getElementById('mainClickBtn').addEventListener('click', (e) => {
+                    this.handleClick(e);
+                });
+            }
+            
+            handleClick(e) {
+                const earnedGold = this.clickPower;
+                this.gold += earnedGold;
+                this.totalClicks++;
+                this.totalEarned += earnedGold;
+                
+                this.showFloatingGold(e, earnedGold);
+                this.updateDisplay();
+                this.checkAchievements();
+            }
+            
+            showFloatingGold(e, amount) {
+                const floatingElement = document.createElement('div');
+                floatingElement.className = 'floating-gold';
+                floatingElement.textContent = `+${amount}`;
+                floatingElement.style.left = e.clientX + 'px';
+                floatingElement.style.top = e.clientY + 'px';
+                
+                document.body.appendChild(floatingElement);
+                
+                setTimeout(() => {
+                    document.body.removeChild(floatingElement);
+                }, 1000);
+            }
+            
+            buyItem(category, itemId) {
+                const item = this.shopItems[category].find(i => i.id === itemId);
+                if (!item || this.gold < item.cost) return false;
+                
+                this.gold -= item.cost;
+                
+                if (category === 'workers') {
+                    this.workers[itemId] = (this.workers[itemId] || 0) + 1;
+                    this.updatePassiveIncome();
+                } else if (category === 'shops') {
+                    if (!this.shops[itemId]) {
+                        this.shops[itemId] = true;
+                        this.clickPower += item.clickBonus;
+                        this.currentProduct = item.product;
+                    }
+                } else if (category === 'upgrades') {
+                    if (!this.upgrades[itemId]) {
+                        this.upgrades[itemId] = true;
+                        if (item.effect === 'click') {
+                            this.clickPower *= item.multiplier;
+                        } else if (item.effect === 'passive') {
+                            this.updatePassiveIncome();
+                        }
+                    }
+                } else if (category === 'cities') {
+                    if (!this.cities[itemId]) {
+                        this.cities[itemId] = true;
+                        this.currentCity = item.name;
+                        this.applyGlobalMultiplier(item.bonus);
+                    }
+                }
+                
+                // Increase cost
+                item.cost = Math.floor(item.cost * 1.15);
+                
+                this.updateDisplay();
+                this.renderShop();
+                return true;
+            }
+            
+            updatePassiveIncome() {
+                let income = 0;
+                
+                this.shopItems.workers.forEach(worker => {
+                    const owned = this.workers[worker.id] || 0;
+                    income += owned * worker.income;
+                });
+                
+                // Apply upgrades
+                if (this.upgrades['verimlilik']) income *= 2;
+                if (this.upgrades['toptanci']) income *= 3;
+                
+                // Apply city bonuses
+                Object.keys(this.cities).forEach(cityId => {
+                    const city = this.shopItems.cities.find(c => c.id === cityId);
+                    if (city) income *= city.bonus;
+                });
+                
+                this.passiveIncome = income;
+            }
+            
+            applyGlobalMultiplier(multiplier) {
+                this.clickPower = Math.floor(this.clickPower * multiplier);
+                this.updatePassiveIncome();
+            }
+            
+            startPassiveIncome() {
+                setInterval(() => {
+                    if (this.passiveIncome > 0) {
+                        this.gold += this.passiveIncome;
+                        this.totalEarned += this.passiveIncome;
+                        this.updateDisplay();
+                    }
+                }, 1000);
+            }
+            
+            updateDisplay() {
+                document.getElementById('goldAmount').textContent = Math.floor(this.gold).toLocaleString();
+                document.getElementById('clickPower').textContent = this.clickPower.toLocaleString();
+                document.getElementById('passiveIncome').textContent = this.passiveIncome.toLocaleString();
+                document.getElementById('currentProduct').textContent = this.currentProduct;
+                document.getElementById('totalClicks').textContent = this.totalClicks.toLocaleString();
+                document.getElementById('totalEarned').textContent = Math.floor(this.totalEarned).toLocaleString();
+                document.getElementById('currentCity').textContent = this.currentCity;
+            }
+            
+            renderShop() {
+                this.renderShopSection('workers', 'workersSection');
+                this.renderShopSection('shops', 'shopsSection');
+                this.renderShopSection('upgrades', 'upgradesSection');
+                this.renderShopSection('cities', 'citiesSection');
+            }
+            
+            renderShopSection(category, containerId) {
+                const container = document.getElementById(containerId);
+                container.innerHTML = '';
+                
+                this.shopItems[category].forEach(item => {
+                    const itemElement = document.createElement('div');
+                    itemElement.className = 'shop-item';
+                    
+                    const canAfford = this.gold >= item.cost;
+                    const isOwned = category === 'workers' ? this.workers[item.id] || 0 : 
+                                   (this.shops[item.id] || this.upgrades[item.id] || this.cities[item.id]);
+                    
+                    if (!canAfford) {
+                        itemElement.classList.add('disabled');
+                    }
+                    
+                    let ownedText = '';
+                    let buttonText = 'Satın Al';
+                    let buttonClass = 'buy-button';
+                    
+                    if (category === 'workers') {
+                        ownedText = `<span class="item-owned">Sahip: ${this.workers[item.id] || 0}</span>`;
+                        buttonText = canAfford ? 'İşe Al' : 'Yetersiz Altın';
+                    } else if (isOwned && category !== 'workers') {
+                        ownedText = '<span class="item-owned">✓ Sahip</span>';
+                        buttonText = 'Sahip';
+                        buttonClass += ' owned';
+                    } else {
+                        buttonText = canAfford ? 'Satın Al' : 'Yetersiz Altın';
+                    }
+                    
+                    if (!canAfford || (category !== 'workers' && isOwned)) {
+                        buttonClass += ' disabled';
+                    }
+                    
+                    itemElement.innerHTML = `
+                        <div class="item-info">
+                            <div class="item-name">${item.name} ${ownedText}</div>
+                            <div class="item-description">${item.description || (item.income ? `+${item.income}/saniye` : '') || (item.clickBonus ? `+${item.clickBonus} tıklama gücü` : '')}</div>
+                            <div class="item-cost">💰 ${item.cost.toLocaleString()} altın</div>
+                        </div>
+                        <button class="${buttonClass}" ${(canAfford && (category === 'workers' || !isOwned)) ? '' : 'disabled'}>
+                            ${buttonText}
+                        </button>
+                    `;
+                    
+                    const button = itemElement.querySelector('.buy-button');
+                    if (canAfford && (category === 'workers' || !isOwned)) {
+                        button.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            this.buyItem(category, item.id);
+                        });
+                    }
+                    
+                    container.appendChild(itemElement);
+                });
+            }
+            
+            checkAchievements() {
+                if (this.totalClicks === 10 && !this.achievements?.firstTen) {
+                    this.showAchievement("İlk 10 Satış!", "10 kez tıkladınız!");
+                    this.achievements = this.achievements || {};
+                    this.achievements.firstTen = true;
+                }
+            }
+            
+            showAchievement(title, description) {
+                const achievement = document.createElement('div');
+                achievement.className = 'achievement';
+                achievement.innerHTML = `<strong>${title}</strong><br>${description}`;
+                
+                document.querySelector('.main-game').appendChild(achievement);
+                
+                setTimeout(() => {
+                    achievement.remove();
+                }, 3000);
+            }
+        }
+        
+        // Oyunu başlat
+        const game = new TicaretHaniGame();
+        game.renderShop();
+    </script>
+</body>
+</html>
