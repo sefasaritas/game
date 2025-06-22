@@ -182,6 +182,7 @@
         .buy-button.disabled:hover {
             transform: none;
             box-shadow: none;
+            background: #666;
         }
         
         .buy-button.owned {
@@ -194,6 +195,7 @@
         .buy-button.owned:hover {
             transform: none;
             box-shadow: none;
+            background: #27ae60;
         }
         
         .item-name {
@@ -349,7 +351,7 @@
     <script>
         class TicaretHaniGame {
             constructor() {
-                this.gold = 0;
+                this.gold = 0; // Test için 56 altın ile başlıyoruz
                 this.clickPower = 1;
                 this.passiveIncome = 0;
                 this.totalClicks = 0;
@@ -411,6 +413,7 @@
                 
                 this.showFloatingGold(e, earnedGold);
                 this.updateDisplay();
+                this.renderShop(); // Butun durumunu güncellemek için shop'u yeniden render et
                 this.checkAchievements();
             }
             
@@ -500,6 +503,7 @@
                         this.gold += this.passiveIncome;
                         this.totalEarned += this.passiveIncome;
                         this.updateDisplay();
+                        this.renderShop(); // Pasif gelir aldıktan sonra da butonları güncelle
                     }
                 }, 1000);
             }
@@ -533,27 +537,33 @@
                     const isOwned = category === 'workers' ? this.workers[item.id] || 0 : 
                                    (this.shops[item.id] || this.upgrades[item.id] || this.cities[item.id]);
                     
-                    if (!canAfford) {
-                        itemElement.classList.add('disabled');
-                    }
-                    
                     let ownedText = '';
                     let buttonText = 'Satın Al';
                     let buttonClass = 'buy-button';
+                    let canBuy = false;
                     
                     if (category === 'workers') {
                         ownedText = `<span class="item-owned">Sahip: ${this.workers[item.id] || 0}</span>`;
-                        buttonText = canAfford ? 'İşe Al' : 'Yetersiz Altın';
+                        if (canAfford) {
+                            buttonText = 'İşe Al';
+                            canBuy = true;
+                        } else {
+                            buttonText = 'Yetersiz Altın';
+                            buttonClass += ' disabled';
+                        }
                     } else if (isOwned && category !== 'workers') {
                         ownedText = '<span class="item-owned">✓ Sahip</span>';
                         buttonText = 'Sahip';
                         buttonClass += ' owned';
+                        canBuy = false;
                     } else {
-                        buttonText = canAfford ? 'Satın Al' : 'Yetersiz Altın';
-                    }
-                    
-                    if (!canAfford || (category !== 'workers' && isOwned)) {
-                        buttonClass += ' disabled';
+                        if (canAfford) {
+                            buttonText = 'Satın Al';
+                            canBuy = true;
+                        } else {
+                            buttonText = 'Yetersiz Altın';
+                            buttonClass += ' disabled';
+                        }
                     }
                     
                     itemElement.innerHTML = `
@@ -562,13 +572,13 @@
                             <div class="item-description">${item.description || (item.income ? `+${item.income}/saniye` : '') || (item.clickBonus ? `+${item.clickBonus} tıklama gücü` : '')}</div>
                             <div class="item-cost">💰 ${item.cost.toLocaleString()} altın</div>
                         </div>
-                        <button class="${buttonClass}" ${(canAfford && (category === 'workers' || !isOwned)) ? '' : 'disabled'}>
+                        <button class="${buttonClass}" ${canBuy ? '' : 'disabled'}>
                             ${buttonText}
                         </button>
                     `;
                     
                     const button = itemElement.querySelector('.buy-button');
-                    if (canAfford && (category === 'workers' || !isOwned)) {
+                    if (canBuy) {
                         button.addEventListener('click', (e) => {
                             e.stopPropagation();
                             this.buyItem(category, item.id);
